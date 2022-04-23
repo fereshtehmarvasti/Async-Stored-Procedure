@@ -1,0 +1,47 @@
+public async Task<IActionResult> IndexAsync()
+        {
+            ViewData["Report_1"] = await SP_Report_1();
+
+            Report_1_FilterViewModel model = new Report_1_FilterViewModel();
+            var db = new _PS1Context();
+
+            model.Fields = db.Feilds.Select(f => new FieldsViewModel
+            {
+                         Field = f.Feildname
+            }).ToList();
+            return View(model);
+        }
+
+public static async Task<List<Report_1_ResultViewModel>> SP_Report_1()
+        {
+Report_1_FilterViewModel filter;
+recordsTotal = 0;
+
+            List<Report_1_ResultViewModel> LResultViewModel = new List<Report_1_ResultViewModel>();
+            using var db = new _PS1Context();
+
+            var ctx = new _PS1ContextProcedures(db);
+            var OutParam = new OutputParameter<int?>();
+            result = await ctx.SP_Report_1Async(filter.Fields.ToString(), filter.VIN, OutParam);
+    
+            recordsTotal = result.Count();
+            List<Report_1_ResultViewModel> data = null;
+
+            foreach (var record in result)
+            {
+                Report_1_ResultViewModel ResultViewModel = new Report_1_ResultViewModel();
+                ResultViewModel.MCode = record.MCode;
+                ResultViewModel.TimeStamp = record.TimeStamp;
+                ResultViewModel.StatusMCode = record.StatusMCode;
+                ResultViewModel.Value = record.Value;
+                LResultViewModel.Add(ResultViewModel);
+
+                if (hasPagination == true)
+                {
+                    data =result.Skip(skip).Take(pageSize).ToList();
+                    int recordsFiltered = recordsTotal;
+                    JsonConvert.SerializeObject(data);
+                }
+            }          
+        }
+
